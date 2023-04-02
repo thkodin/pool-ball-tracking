@@ -4,7 +4,7 @@ We want to track the movement of pool balls in a pool game using a stitched view
 
 https://user-images.githubusercontent.com/94681976/226663837-897862a2-5f77-41ee-ba1a-beee7f420091.mp4
 
-NOTE: You may notice the jittery videos - that is a result of the IP webcam read issue on OpenCV, which just does not sync well. This also causes the pool balls to disappear momentarily in the stitchec view, because one camera's buffer is ahead of the other one. This will need some more sophisticated frame reading and dropping in the existing framework, or it may just not be possible to fix as the issue does not happen on USB. See Task 1 for more details.
+NOTE: You may notice the jittery videos - that is a result of the IP webcam read issue on OpenCV, which just does not sync well. This also causes the pool balls to disappear momentarily in the stitched view, because one camera's buffer is ahead of the other one. This will need some more sophisticated frame reading and dropping in the existing framework, or it may just not be possible to fix as the issue does not happen on USB. See Task 1.
 
 # Task List
 The project was split into **SIX** tasks, of which **ONE** is optional.
