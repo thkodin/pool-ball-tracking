@@ -69,18 +69,18 @@ We can now generate a top view of the stithced result showing the full pool tabl
 
 Though we did not perform the optional task owing to time constraints, a naive and simple approach would be to draw a small box around the pockets and check when a pool ball's bounding box center passes that boundary. Since we are in the top view, this is a fairly accurate measure of when a ball is pocketed. In this context, a trip wire could determine when a ball is pocketed and keep track of the score.
 
-##### Further Improvements and Addons
+#### Further Improvements and Addons
 
-Training:
+##### Training:
 - Gathering a larger and more diverse dataset will make the model robust to various lighting conditions and pool ball orientations.
 - Add control samples that contain circular objects other than pool balls. Right now, the network will call any circular, ball-like object a pool ball.
 
-Automation:
+##### Automation:
 - Automating the process of top orthographic view generation. We could try to detect the table corners in the stitched view or fit a plane that maximized the area of the green surface. Then we have a pretty good guess of where the corners will be.
 - Automating pocket detection to draw tripwires quickly.
 
-Heatmap:
+##### Heatmap:
 - Skeletonize (thin via erosion morphing) the heatmap and lower the history. Right now, we get colors the size of the entire object and they stay for a long time before merging back into the background. That looks quite ugly and unclear at times.
 
-Tracking:
+##### Tracking:
 - Implement a tracking algorithm (e.g., KCF) using the pool ball detections by YOLO as initial locations. We won't need to run YOLO on each frame that way, improving performance. Simply run YOLO until all pool balls are detected, and then run the tracking algorithm for successive frames. Keep checks checks for tracking failure - reset tracker and run YOLO again if it happens.
