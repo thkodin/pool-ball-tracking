@@ -1,8 +1,10 @@
 Project Members: Syed Zain Abbas, Taimoor Hasan Khan (maintainer), Yaseen Athar
 
+We want to track the movement of pool balls in a pool game using a stitched view from at least two or more cameras. Such a system could be used to keep track of the game score, among other things. However, the main goal is to become familiar with coding the concepts learned over the course and the typical environment and modules we can use.
+
 https://user-images.githubusercontent.com/94681976/226663837-897862a2-5f77-41ee-ba1a-beee7f420091.mp4
 
-We want to track the movement of pool balls in a pool game using a stitched view from at least two or more cameras. Such a system could be used to keep track of the game score, among other things. However, the main goal is to become familiar with coding the concepts learned over the course and the typical environment and modules we can use.
+NOTE: You may notice the jittery videos - that is a result of the IP webcam read issue on OpenCV, which just does not sync well. This also causes the pool balls to disappear momentarily in the stitchec view, because one camera's buffer is ahead of the other one. This will need some more sophisticated frame reading and dropping in the existing framework, or it may just not be possible to fix as the issue does not happen on USB. See Task 1 for more details.
 
 # Task List
 The project was split into **SIX** tasks, of which **ONE** is optional.
@@ -14,6 +16,11 @@ The project was split into **SIX** tasks, of which **ONE** is optional.
 5. Heatmap Visualisation on Orthographic Top-View.
 6. (Optional) Trip Wire feature.
    
+Overall framework:
+
+<p align="center">
+    <img src=https://user-images.githubusercontent.com/94681976/229377090-8d4a9cc3-8ef6-41b6-aa4a-b2f9b645e37a.png title="Overall Framework" width=50% />
+</p>
 
 ### Task 1
 
@@ -41,7 +48,7 @@ Training parameters were:
 The training graph (as presented by Darknet) is as follows:
 
 <p align="center">
-    <img src=https://user-images.githubusercontent.com/94681976/229373370-72e33131-2e7d-4d3e-a7dd-7e6c0bc46f66.png title="Example Training Image" width=50% />
+    <img src=https://user-images.githubusercontent.com/94681976/229373370-72e33131-2e7d-4d3e-a7dd-7e6c0bc46f66.png title="Training Graph" width=50% />
 </p>
 
 ### Task 3
@@ -61,7 +68,7 @@ As an additional step, we apply some refinements to minimize the black padding s
 We can now generate a top view of the stithced result showing the full pool table. The process remains as described in Task 3. Finally, we apply YOLO to the stitched top view to detect all the pool balls.
 
 <p align="center">
-    <img src=https://user-images.githubusercontent.com/94681976/229375341-a0eec447-30a9-4077-b597-b00a94d155c1.png title="Example Training Image" width=50% />
+    <img src=https://user-images.githubusercontent.com/94681976/229375341-a0eec447-30a9-4077-b597-b00a94d155c1.png title="Orthographic Top-View" width=50% />
 </p>
 
 NOTE: Stitching can be time-intensive, especially if using Brute Force Matching with SIFT features. We make the assumption that our cameras remain stationary, which relaxes the homography estimation operation (which requires this feature correspondence) to run just once instead of every single frame. Then, we can use the estimated homography to directly warp all successive frames as long as the cameras do not move. Without YOLO, stitching on every frame results in 10 FPS on average, whereas the assumption improves it to 333 tested average FPS, which is significantly better and removes the bottleneck from this step. 
