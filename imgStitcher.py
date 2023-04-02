@@ -1,6 +1,5 @@
 # A heavily-commented version of this code is available in: /individual_tasks/Stitching/img_stitching_detailed.py
-# The above is not a class implementation of stitching, but it essentially serves as the core of what is
-# happening here.
+# The above is not a class implementation of stitching, but it does the same things.
 
 import os
 import sys
@@ -91,7 +90,7 @@ class Stitcher:
         stitched_result[0 : frame_L.shape[0], 0 : frame_L.shape[1]] = frame_L
         cv.imwrite(os.path.join(self.save_path, 'stitched.jpg'), stitched_result)
 
-        print('[INFO-STITCHING] Stitching Successful. Refining result...')
+        print('[INFO-STITCHING] Stitching successful. Refining result...')
         stitched_result_max, stitched_result_min, stitch_maxrect, stitch_minrect = self.refineStitch(stitched_result)
 
         cv.imwrite(os.path.join(self.save_path, 'stitched_maxFit.jpg'), stitched_result_max)
