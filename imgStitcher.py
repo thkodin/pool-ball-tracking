@@ -10,41 +10,41 @@ import imutils
 
 
 class Stitcher:
-    def __init__(self, feature_extractor = "sift", feature_matcher = "bf", ratio = 0.8, k = 2, reprojThresh = 4):
+    def __init__(self, feature_extractor = 'sift', feature_matcher = 'bf', ratio = 0.8, k = 2, reprojThresh = 4):
         script_path = sys.path[0]
-        self.save_path = os.path.normpath(os.path.join(script_path, "stitcher_results"))
-        os.makedirs(self.save_path) if not os.path.exists(self.save_path) else print("[INFO-STITCHING] Save directory found.")
+        self.save_path = os.path.normpath(os.path.join(script_path, 'stitcher_results'))
+        os.makedirs(self.save_path) if not os.path.exists(self.save_path) else print('[INFO-STITCHING] Save directory found.')
 
         if k != 2:
-            print("[ERROR-STITCHING]: Currently, only k = 2 is supported. Please ensure.")
+            print('[ERROR-STITCHING]: Currently, only k = 2 is supported. Please ensure.')
             os._exit(0)
 
         self.feature_extractor = feature_extractor
         self.feature_matcher = feature_matcher
 
-        if feature_extractor == "sift":
+        if feature_extractor == 'sift':
             self.descriptor = cv.SIFT_create()
             self.distance_metric = cv.NORM_L2        
 
-        elif feature_extractor == "surf":
+        elif feature_extractor == 'surf':
             self.descriptor = cv.SURF_create()
             self.distance_metric = cv.NORM_L2
 
-        elif feature_extractor == "brisk":
+        elif feature_extractor == 'brisk':
             self.descriptor = cv.BRISK_create()
             self.distance_metric = cv.NORM_HAMMING   
 
-        elif feature_extractor == "orb":
+        elif feature_extractor == 'orb':
             self.descriptor = cv.ORB_create()
             self.distance_metric = cv.NORM_HAMMING
         
-        crossCheck = True if feature_matcher == "bf" else False
+        crossCheck = True if feature_matcher == 'bf' else False
         self.matcher = cv.BFMatcher_create(self.distance_metric, crossCheck = crossCheck)
 
-        print("[INFO-STITCHING] Selected feature extractor ID {} ({})."
+        print('[INFO-STITCHING] Selected feature extractor ID {} ({}).'
                .format(self.descriptor.descriptorType(), feature_extractor.upper()))
 
-        print("[INFO-STITCHING] Selected feature matcher {}, crossCheck set to {}."
+        print('[INFO-STITCHING] Selected feature matcher {}, crossCheck set to {}.'
                .format(feature_matcher.upper(), crossCheck))
 
         self.reprojThresh = reprojThresh
@@ -60,13 +60,13 @@ class Stitcher:
 
         hR, wR = frame_R.shape[:2]
         hL, wL = frame_L.shape[:2]
-        print("[INFO-STITCHING] Right Image Height: {}, Image Width: {}".format(hR, wR))
-        print("[INFO-STITCHING] Left Image Height: {}, Image Width: {}".format(hL, wL))
+        print('[INFO-STITCHING] Right Image Height: {}, Image Width: {}'.format(hR, wR))
+        print('[INFO-STITCHING] Left Image Height: {}, Image Width: {}'.format(hL, wL))
 
         kptsL, featuresL = self.detectAndDescribe(frame_LGray)
         kptsR, featuresR = self.detectAndDescribe(frame_RGray)
 
-        if self.feature_matcher == "bf":
+        if self.feature_matcher == 'bf':
             matches = self.matchKeyPointsBF(featuresR, featuresL)
             matches_vis = cv.drawMatches(frame_R, kptsR, frame_L, kptsL, matches[:100], None,
                                         flags = cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
@@ -76,8 +76,8 @@ class Stitcher:
             matches_vis = cv.drawMatches(frame_R, kptsR, frame_L, kptsL, np.random.choice(matches, 100), None,
                                         flags = cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS) 
 
-        cv.imwrite(os.path.join(self.save_path, "matched_kpts.jpg"), matches_vis)
-        #cv.imshow("Matched Features", matches_vis)
+        cv.imwrite(os.path.join(self.save_path, 'matched_kpts.jpg'), matches_vis)
+        #cv.imshow('Matched Features', matches_vis)
         cv.waitKey(1)
 
         H, _ = self.getHomography(kptsR, kptsL, matches)
@@ -86,25 +86,25 @@ class Stitcher:
         stitched_height = frame_R.shape[0] + frame_L.shape[0]
 
         stitched_result = cv.warpPerspective(frame_R, H, (stitched_width, stitched_height))
-        cv.imwrite(os.path.join(self.save_path, "warped.jpg"), stitched_result) 
+        cv.imwrite(os.path.join(self.save_path, 'warped.jpg'), stitched_result) 
 
         stitched_result[0 : frame_L.shape[0], 0 : frame_L.shape[1]] = frame_L
-        cv.imwrite(os.path.join(self.save_path, "stitched.jpg"), stitched_result)
+        cv.imwrite(os.path.join(self.save_path, 'stitched.jpg'), stitched_result)
 
-        print("[INFO-STITCHING] Stitching Successful. Refining result...")
+        print('[INFO-STITCHING] Stitching Successful. Refining result...')
         stitched_result_max, stitched_result_min, stitch_maxrect, stitch_minrect = self.refineStitch(stitched_result)
 
-        cv.imwrite(os.path.join(self.save_path, "stitched_maxFit.jpg"), stitched_result_max)
-        cv.imwrite(os.path.join(self.save_path, "stitched_minFit.jpg"), stitched_result_min)
-        cv.imshow("Stitched Result (Final)", stitched_result_max)
+        cv.imwrite(os.path.join(self.save_path, 'stitched_maxFit.jpg'), stitched_result_max)
+        cv.imwrite(os.path.join(self.save_path, 'stitched_minFit.jpg'), stitched_result_min)
+        cv.imshow('Stitched Result (Final)', stitched_result_max)
         cv.waitKey(0)
 
-        print("[SUCCESS-STITCHING] Stitch successful. Results saved to folder 'stitcher_results'.")
-        print("----------------------------------------------------------------------------------")
+        print('[SUCCESS-STITCHING] Stitch successful. Results saved to folder "stitcher_results".')
+        print('----------------------------------------------------------------------------------')
 
         # Clean up.
-        cv.destroyWindow("Stitched Result (Final)")
-        #cv.destroyWindow("Matched Features")
+        cv.destroyWindow('Stitched Result (Final)')
+        #cv.destroyWindow('Matched Features')
         
         return stitched_result_max, stitched_result_min, stitch_maxrect, stitch_minrect, H       
 
@@ -117,13 +117,13 @@ class Stitcher:
     def matchKeyPointsBF(self, featuresR, featuresL):
         best_matches = self.matcher.match(featuresR, featuresL)
         rawMatches = sorted(best_matches, key = lambda match:match.distance)
-        print("[INFO-STITCHING] Raw Matches (Brute Force):", len(rawMatches))
+        print('[INFO-STITCHING] Raw Matches (Brute Force):', len(rawMatches))
         return rawMatches
 
 
     def matchKeyPointsKNN(self, featuresR, featuresL):
         rawMatches = self.matcher.knnMatch(featuresR, featuresL, self.k)
-        print("[INFO-STITCHING] Raw Matches (KNN):", len(rawMatches))
+        print('[INFO-STITCHING] Raw Matches (KNN):', len(rawMatches))
         trueMatches = []    
 
         for m, n in rawMatches:
@@ -143,7 +143,7 @@ class Stitcher:
             return H, status
 
         else:
-            print("Unable to compute homography. Please adjust your camera setup and re-initialize.")
+            print('Unable to compute homography. Please adjust your camera setup and re-initialize.')
             os._exit(0)
 
     # This function not in img_stitching_detailed.py, but all of what it does is present in the
@@ -177,7 +177,7 @@ class Stitcher:
         cnts = imutils.grab_contours(cnts)
         c = max(cnts, key = cv.contourArea)
 
-        mask_lossless = np.zeros(thresh_lossless.shape, dtype = "uint8")         
+        mask_lossless = np.zeros(thresh_lossless.shape, dtype = 'uint8')         
         (x, y, w, h) = cv.boundingRect(c)
         cv.rectangle(mask_lossless, (x, y), (x + w, y + h), 255, -1)
 
@@ -205,9 +205,9 @@ class Stitcher:
 # TESTING...
 # stitcher = Stitcher()
 
-# frame_L = cv.imread("fotoL.jpg")
-# frame_R = cv.imread("fotoR.jpg")  
+# frame_L = cv.imread('fotoL.jpg')
+# frame_R = cv.imread('fotoR.jpg')  
 
 # result = stitcher.stitch([frame_L, frame_R])
-# cv.imshow("Stitched", result); cv.waitKey(0)
-# cv.destroyWindow("Stitched")
+# cv.imshow('Stitched', result); cv.waitKey(0)
+# cv.destroyWindow('Stitched')

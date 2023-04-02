@@ -1,4 +1,4 @@
-# Every part of this program has a very heavily commented script included in the "individual_tasks" folder.
+# Every part of this program has a very heavily commented script included in the 'individual_tasks' folder.
 # We implemented each function separately before integrating into our script, and in the separate implementation
 # we commented everything we learnt regarding the specific functionality we were introducing in the context of
 # coding. So the comments will be a bit light here. For more details, you may view the aforementioned scripts.
@@ -57,7 +57,7 @@ targetSize = (416, 416)
 #colors = np.random.randint(0, 255, size = (len(labels), 3), dtype = np.uint8)
 
 # For single class problems...
-labels = ["pool ball"]          # only one label
+labels = ['pool ball']          # only one label
 colors = (150, 150, 255)        # only one color
 
 # Detection and NMS thresholds
@@ -71,7 +71,7 @@ class YOLO(object):
         global namesPath; global cfgPath; global weightsPath
 
         # Instantiate yolo network.
-        print("[INFO-YOLO] Loading YOLO from", darknetDir, end = '...\n')
+        print('[INFO-YOLO] Loading YOLO from', darknetDir, end = '...\n')
         self.yolo = cv.dnn.readNetFromDarknet(cfgPath, weightsPath)
 
         # Enable CUDA for OpenCV.
@@ -105,7 +105,7 @@ class YOLO(object):
                 
                 if conf > ConfThresh:
                     bbox = det[0:4] * np.array([fw, fh, fw, fh])    # bbox has form (center_x, center_y, total_width, total_height)
-                    bbox = bbox.astype("int")       
+                    bbox = bbox.astype('int')       
                     
                     bbox[0] = int(bbox[0] - bbox[2]/2)   # update bbox 'x' to be top left of image in horizontal direction (for drawing rect)
                     bbox[1] = int(bbox[1] - bbox[3]/2)   # update bbox 'y' to be top left of image in vertical direction (for drawing rect)
@@ -122,7 +122,7 @@ class YOLO(object):
                 # [int(c) for c in colors[IDs[i]]]
                 pickedColor = colors  
                 cv.rectangle(frame, (bx, by), (bx + bw, by + bh), pickedColor, 1)
-                text = "{}: {:.2f}".format(labels[IDs[i]], confs[i])
+                text = '{}: {:.2f}'.format(labels[IDs[i]], confs[i])
                 cv.putText(frame, text, (bx, by - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, pickedColor, 1)  
 
 
@@ -133,7 +133,7 @@ def skipFrames(cap_obj, id_string, skip_count = 25):
     while (cap_obj.isOpened()):
         grabbed, _ = cap_obj.read()
         if grabbed is False:
-            print(id_string, "[ERROR]: Unable to read a camera feed. Terminating program...")
+            print(id_string, '[ERROR]: Unable to read a camera feed. Terminating program...')
             os._exit(0)
 
         # Simple counter to skip frames.
@@ -141,13 +141,13 @@ def skipFrames(cap_obj, id_string, skip_count = 25):
             cntFrames += 1
             continue
         else:
-            print(id_string, "Skipped " + str(skip_count) + " frames.")
+            print(id_string, 'Skipped ' + str(skip_count) + ' frames.')
             del(cntFrames)
             break
 
 
 # For online video feed. Reads the live feed from camera, puts it in queue for stitching, and waits
-# for the stitcher to return a completion event flag before repeating. Shut down any time by "q".
+# for the stitcher to return a completion event flag before repeating. Shut down any time by 'q'.
 def liveFeed(cam_or_url, id_cam, queue, event_stitcher_ready, event_stitched):
 
     # Intialize capture and get some capture properties.
@@ -156,9 +156,9 @@ def liveFeed(cam_or_url, id_cam, queue, event_stitcher_ready, event_stitched):
     natW = int(vid.get(cv.CAP_PROP_FRAME_WIDTH))    # get frame width
     natH = int(vid.get(cv.CAP_PROP_FRAME_HEIGHT))   # get frame height
     natFPS = int(vid.get(cv.CAP_PROP_FPS))          # get video framerate
-    print("[INFO-CAM] Camera Natives: {}x{} @{} FPS.".format(natW, natH, natFPS))
+    print('[INFO-CAM] Camera Natives: {}x{} @{} FPS.'.format(natW, natH, natFPS))
 
-    eventString = "--> " + id_cam + ":"     # helps identify which camera causes any issues
+    eventString = '--> ' + id_cam + ':'     # helps identify which camera causes any issues
     
     # Skip a second's worth of frames to allow camera adjustments and ensure both are launched properly.
     # Then, begin streaming as usual... not a necessary feature but left in regardless.
@@ -173,10 +173,10 @@ def liveFeed(cam_or_url, id_cam, queue, event_stitcher_ready, event_stitched):
 
         # Unable to read, then...
         if grabbed is False:
-            print(eventString, "[ERROR]: Unable to read camera feed. Terminating...")
+            print(eventString, '[ERROR]: Unable to read camera feed. Terminating...')
             break 
-        if keyboard.is_pressed("q"):    
-            print(eventString, "User interrupt registered. Terminating stream...")
+        if keyboard.is_pressed('q'):    
+            print(eventString, 'User interrupt registered. Terminating stream...')
             break 
 
     # Shut down video capture. This marks the end of this function.
@@ -193,7 +193,7 @@ def videoPB(path):
     natW = int(vid.get(cv.CAP_PROP_FRAME_WIDTH))   
     natH = int(vid.get(cv.CAP_PROP_FRAME_HEIGHT))
     natFPS = int(vid.get(cv.CAP_PROP_FPS))
-    print("[INFO] Video Natives: {}x{} @{} FPS.".format(natW, natH, natFPS))
+    print('[INFO] Video Natives: {}x{} @{} FPS.'.format(natW, natH, natFPS))
 
     # Resize to get better output and actually fit 3 windows on the screen.
     scaleW = int(0.5 * natW)
@@ -209,7 +209,7 @@ def videoPB(path):
         _, frame = vid.read()
 
         if frame is None:
-            print("[ERROR: {}] The video has ended...".format(name))
+            print('[ERROR: {}] The video has ended...'.format(name))
             break
 
         frame = cv.resize(frame, (int(scaleW), int(scaleH)))
@@ -218,15 +218,15 @@ def videoPB(path):
 
         key = cv.waitKey(natFPS)    # to ensure proper FPS on video playback, otherwise it speeds up or slows down
         if key == 113:
-            print("[EVENT: {}] User interrupt. Terminating...".format(name))
+            print('[EVENT: {}] User interrupt. Terminating...'.format(name))
             break
         fps.update()
 
     fps.stop()
     vid.release()
     cv.destroyWindow(name)
-    print("\n[INFO] Elapsed time: {:.2f}".format(fps.elapsed()))
-    print("[INFO] Average FPS: {:.2f}".format(fps.fps()))
+    print('\n[INFO] Elapsed time: {:.2f}'.format(fps.elapsed()))
+    print('[INFO] Average FPS: {:.2f}'.format(fps.fps()))
 
 
 # For when homography has been calculated previously and some other parameters are known. Note that this
@@ -251,9 +251,7 @@ def warpAndFit(frames, H, maxRect, stitch_canvas):
     return stitched_result
 
 
-# This is the big boy. He is the heart of this script: stitching, bird's eye view, motion heatmap, ball detection, 
-# frame management, user interrupt detection - he does it all with some help from his friends. Be sure to give him
-# a good lookover! Please note that all the arguments are for multiprocess resource sharing and nothing else.
+# Please note that all the arguments are for multiprocess resource sharing and nothing else.
 # Defining these frameworks as global objects doesn't work (we tried), so you have to include any shared queues
 # and events in all the arguments for these multiprocessing function targets.
 
@@ -290,7 +288,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
             if len(points) < 4:         # technically you need arrays, but we just use np.asanyarray(list)
                 points.append([x, y])
             elif len(points) == 4:
-                print("[INFO-BIRD] Already marked 4 points. Press any key to exit...")
+                print('[INFO-BIRD] Already marked 4 points. Press any key to exit...')
 
             cv.imshow(mark_winName, first_frame)  # update the display image with marked points
 
@@ -301,9 +299,9 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
     detector = YOLO()                                   # YOLO object detector object
     homography_stitch = None                            # store homography for stitch warp
     homography_top = None                               # store homography for bird's eye warp
-    stitch_winName = "stitch_view"                      # to display stitched results (if needed)
-    top_winName = "top_view"                            # to display top-view generation with detected objects 
-    mark_winName = "Mark 4 Points (TL, TR, BL, BR)"     # display window for marking top-view points
+    stitch_winName = 'stitch_view'                      # to display stitched results (if needed)
+    top_winName = 'top_view'                            # to display top-view generation with detected objects 
+    mark_winName = 'Mark 4 Points (TL, TR, BL, BR)'     # display window for marking top-view points
 
     # Create the background subtractor object.
     # varThreshold will need a bit of tweaking now and then for different setups. For better robustness, use the morphological
@@ -327,9 +325,9 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
     
     # Some pathing and printing QoL
     recPath = sys.path[0]                                        # returns path of this script
-    recName = top_winName + "_" + str(num_rec) + recFmt          # to prevent overwrite of multiple recordings
-    rec_hmpName = top_winName + "_hmp_" + str(num_rec) + recFmt  # to prevent overwrite of multiple recordings
-    eventString = "--> " + top_winName + ":"                     # to identify message sender 
+    recName = top_winName + '_' + str(num_rec) + recFmt          # to prevent overwrite of multiple recordings
+    rec_hmpName = top_winName + '_hmp_' + str(num_rec) + recFmt  # to prevent overwrite of multiple recordings
+    eventString = '--> ' + top_winName + ':'                     # to identify message sender 
     
     # Unintentional keypresses
     block_keyPressed = False    # set whenever a key is pressed, cleared after a number of frames passed
@@ -401,7 +399,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
             #start = time.time()
             stitched_result = warpAndFit([frame_left, frame_right], homography_stitch, maxRect, stitch_canvas)
             #end = time.time()
-            #print("[INFO] Stitching took {:2.4f} seconds.".format(end - start))
+            #print('[INFO] Stitching took {:2.4f} seconds.'.format(end - start))
 
         # To keep track of just the pool balls, it might be better to just maintain a history of every detected pool
         # ball's pixel movement points rather than generate a heatmap. It would just require the bboxes we get from
@@ -429,7 +427,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
         queue_hmap.put(thresh)
 
         # Provide a colormap to the masked image. We do this before YOLO because our implementation of YOLO draws 
-        # the bounding boxes on the image directly, which then are detected as moving objects in the heatmap!
+        # the bounding boxes on the image directly, which then are incorrectly detected as moving objects in the heatmap.
         heatmapped = cv.applyColorMap(accum_image, cv.COLORMAP_SUMMER)
         
         # Perform YOLO detection on stitched image (non-heatmap) to look for pool balls. Draws bboxes around detections.
@@ -449,7 +447,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
         #cv.imshow(stitch_winName, stitched_result)  # unnecessary
 
         cv.imshow(top_winName, frame_top)           # necessary
-        cv.imshow("Motion Heatmap", heatmapped)     # necessary
+        cv.imshow('Motion Heatmap', heatmapped)     # necessary
         cv.waitKey(1)                               
         
         event_stitched.set()    # signal stitching complete, ready camera processes for next frame.
@@ -458,7 +456,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
         
 
         #end = time.time()
-        #print("[INFO] Stitching took {:2.4f} seconds.".format(end - start))
+        #print('[INFO] Stitching took {:2.4f} seconds.'.format(end - start))
         # Ideally, you'd do the below (interrupt checking) in a separate thread, but whatever.
         #=================================================================================================
         #                                    FANCY STUFF (USER OPTIONS)
@@ -468,56 +466,56 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
 
             # 'd' pressed while recording - discard current recording
             # -------------------------------------------------------
-            if keyboard.is_pressed("d") and rec:      
+            if keyboard.is_pressed('d') and rec:      
                 block_keyPressed = True
                 rec.release(); rec_hmp.release()
                 rec = None; rec_hmp = None
                 delPath = os.path.join(recPath, recName); os.remove(delPath)
                 delPath = os.path.join(recPath, rec_hmpName); os.remove(delPath)
-                print(eventString, "Stopped and deleted recording", recName + ".")
+                print(eventString, 'Stopped and deleted recording', recName + '.')
 
             # 'p' pressed while recording - pause/resume recording    
             # ----------------------------------------------------
-            elif keyboard.is_pressed("p") and rec:    
+            elif keyboard.is_pressed('p') and rec:    
                 block_keyPressed = True
                 if isPaused is True:
                     isPaused = False
-                    print(eventString, "Resumed recording", recName + "...")
+                    print(eventString, 'Resumed recording', recName + '...')
                 else:
                     isPaused = True
-                    print(eventString, "Paused recording", recName + "...")
+                    print(eventString, 'Paused recording', recName + '...')
 
             # 'q' pressed - quit streaming       
             # ---------------------------- 
-            elif keyboard.is_pressed("q"):           
+            elif keyboard.is_pressed('q'):           
                 # NOT CHANGING DELAY EVENT HERE BECAUSE QUITTING.
-                print(eventString, "Releasing stream and saving if recording.")
+                print(eventString, 'Releasing stream and saving if recording.')
                 break
 
             # 'r' pressed - begin recording
             # -----------------------------    
-            elif keyboard.is_pressed("r"):           
+            elif keyboard.is_pressed('r'):           
                 block_keyPressed = True
                 # rec is no longer None after this.
                 if None in {rec, rec_hmp}:
                     rec = cv.VideoWriter(recName, fourcc, fps, (int(top_width), int(top_height)))
                     rec_hmp = cv.VideoWriter(rec_hmpName, fourcc, fps, (int(top_width), int(top_height)))
-                    print(eventString, "Started recording", recName + ".")
+                    print(eventString, 'Started recording', recName + '.')
                 else:
-                    print(eventString, "Recording already started. Continuing...")
+                    print(eventString, 'Recording already started. Continuing...')
 
             # 's' pressed while recording - save recording   
             # --------------------------------------------     
-            elif keyboard.is_pressed("s") and rec:   
+            elif keyboard.is_pressed('s') and rec:   
                 block_keyPressed = True
                 # Release recording, but not the camera. 
                 rec.release(); rec_hmp.release()
                 # Prep for a new recording beforehand.
                 rec = None; rec_hmp = None
                 num_rec += 1              
-                print(eventString, "Recording stopped and saved as", recName + "! Press 'r' for a new one.")
-                recName = top_winName + "_" + str(num_rec) + recFmt      # to not overwrite old recordings
-                recName = top_winName + "_hmp_" + str(num_rec) + recFmt  # same for heatmap recordings
+                print(eventString, 'Recording stopped and saved as', recName + '! Press 'r' for a new one.')
+                recName = top_winName + '_' + str(num_rec) + recFmt      # to not overwrite old recordings
+                recName = top_winName + '_hmp_' + str(num_rec) + recFmt  # same for heatmap recordings
 
             # Any other key pressed 
             # ---------------------
@@ -543,42 +541,42 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
         rec_hmp.release()
 
     cv.destroyWindow(top_winName)
-    cv.destroyWindow("Motion Heatmap")
+    cv.destroyWindow('Motion Heatmap')
     #cv.destroyWindow(stitch_winName)
     #cv.destroyWindow(id_camleft)
     #cv.destroyWindow(id_camright)
 
-    print("\n[INFO] Elapsed time: {:.2f}".format(eval_fps.elapsed()))
-    print("[INFO] Average FPS: {:.2f}".format(eval_fps.fps()))
+    print('\n[INFO] Elapsed time: {:.2f}'.format(eval_fps.elapsed()))
+    print('[INFO] Average FPS: {:.2f}'.format(eval_fps.fps()))
     
 
 if __name__ == '__main__':
     # Prompt for offline (local video) or online (live) video. 
-    print("This program supports both online and offline recording and playback respectively.")
-    print("---> (1) Online mode offers live feed and recording through multiple IP cameras.")
-    print("---> (2) Offline mode offers playback of locally available video files.")
-    pbMode = input("Choose mode (1 or 2): ")
+    print('This program supports both online and offline recording and playback respectively.')
+    print('---> (1) Online mode offers live feed and recording through multiple IP cameras.')
+    print('---> (2) Offline mode offers playback of locally available video files.')
+    pbMode = input('Choose mode (1 or 2): ')
 
     while pbMode not in {'1', '2'}: 
-            pbMode = input("[ERROR] Please enter a valid option (1 for online or 2 for offline): ")
+            pbMode = input('[ERROR] Please enter a valid option (1 for online or 2 for offline): ')
         
     if pbMode == '1':
         online = True
-        print("ONline mode selected!\n")
+        print('ONline mode selected!\n')
     elif pbMode == '2':
         online = False
-        print("OFFline mode selected!\n")
+        print('OFFline mode selected!\n')
 
     # ONLINE MODE SELECTED.
     if online is True:
-        print("============================ RECORDING CONTROLS =============================")
-        print("To begin recording at any time, press 'r'. Once begun, the following applies:")
-        print("\tTo pause current recording, press 'p'.")
-        print("\tTo stop and save recording but continue viewing feed, press 's'.")
-        print("\tTo stop and save recording (if any) as well as exit live feed, press 'q'.")
-        print("\tTo discard current recording, press 'd'.")
-        print("NOTE: After 's' or 'd', a new recording may be begun by pressing 'r' again.")
-        print("=============================================================================\n")
+        print('============================ RECORDING CONTROLS =============================')
+        print('To begin recording at any time, press "r". Once begun, the following applies:')
+        print('\tTo pause current recording, press "p".')
+        print('\tTo stop and save recording but continue viewing feed, press "s".')
+        print('\tTo stop and save recording (if any) as well as exit live feed, press "q".')
+        print('\tTo discard current recording, press "d".')
+        print('NOTE: After "s" or "d", a new recording may be begun by pressing "r" again.')
+        print('=============================================================================\n')
         
         # Define names for the camera windows. These are used later to identify which queue to fill.
         name_cam1 = 'IPCam1'
@@ -591,7 +589,7 @@ if __name__ == '__main__':
         stitched = multiprocessing.Event()
 
         # MAKE SURE camP1 gets a left view of the scene, and camP2 gets the right view.
-        camP1 = multiprocessing.Process(target = liveFeed, args=("https://192.168.1.206:8080/video", 
+        camP1 = multiprocessing.Process(target = liveFeed, args=('https://192.168.1.206:8080/video', 
                                         name_cam1, queue_cam1, stitcher_ready, stitched))
         camP2 = multiprocessing.Process(target = liveFeed, args=('https://192.168.1.205:8081/video', 
                                         name_cam2, queue_cam2, stitcher_ready, stitched))
@@ -609,19 +607,19 @@ if __name__ == '__main__':
         camP1.join()
         camP2.join()
 
-        print("All processes finished.")
+        print('All processes finished.')
     
     # OFFLINE MODE SELECTED.
     else:
-        print("If video file is not in the script directory, enter the absolute path. Otherwise, just the file name would suffice.")
-        print("NOTE: Enter '>' without commas to launch all the selected video files.")
+        print('If video file is not in the script directory, enter the absolute path. Otherwise, just the file name would suffice.')
+        print('NOTE: Enter '>' without commas to launch all the selected video files.')
         fpaths = []
         while True:
-            p = input("Enter path or >: ")
+            p = input('Enter path or >: ')
             if p == '>':
                 break
             else:
-                fpaths.append(p) if os.path.exists(p) else print("[ERROR] Invalid path received. Ensure path/name is correct.")
+                fpaths.append(p) if os.path.exists(p) else print('[ERROR] Invalid path received. Ensure path/name is correct.')
 
         # Create as many empty elements as input paths in a list, and start a process
         # for each of the input video files in this list.
@@ -634,6 +632,6 @@ if __name__ == '__main__':
         for i in range(len(vidProcesses)):
             vidProcesses[i].join()
         
-        print("[INFO] All videos have terminated. Exiting...")
+        print('[INFO] All videos have terminated. Exiting...')
 
 # ******************* YOU HAVE REACHED THE END OF THE SCRIPT ******************* #
