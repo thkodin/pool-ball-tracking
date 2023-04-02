@@ -2,8 +2,6 @@ Project Members: Syed Zain Abbas, Taimoor Hasan Khan (maintainer), Yaseen Athar
 
 https://user-images.githubusercontent.com/94681976/226663837-897862a2-5f77-41ee-ba1a-beee7f420091.mp4
 
-Welcome to the PoolBallTracking-CV wiki! This repo is a semester project titled "Multi-Camera Surveillance System" for the Computer Vision course at NUST. Our scenario is not surveillance, but the core idea is the same. 
-
 We want to track the movement of pool balls in a pool game using a stitched view from at least two or more cameras. Such a system could be used to keep track of the game score, among other things. However, the main goal is to become familiar with coding the concepts learned over the course and the typical environment and modules we can use.
 
 # Task List
