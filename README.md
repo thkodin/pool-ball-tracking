@@ -48,7 +48,7 @@ The training graph (as presented by Darknet) is as follows:
 
 This step was quite simple. For our initial test, we setup a single camera to view the entire pool table. We manually marked four corners of the pool table (top left, top right, bottom right, bottom left), and fed those points to `cv2.getPerspectiveTransform` to estimate the 2D homography (requires 8 points - each corner we mark gets us a pair of points, so 4 corners = 2 x 4 = 8 points). Then, we do `cv2.warpPerspective` to apply the homography to the image, which gets us the top or bird's eye view.
 
-We extend this to the stitched view of two cameras instead of just one in Task 4.
+We extend this to the stitched view of two cameras instead of just one in Task 4 (see figure in that section).
 
 ### Task 4
 
@@ -56,18 +56,27 @@ We extend this to the stitched view of two cameras instead of just one in Task 4
 
 This step involves image stitching. We use two IP cameras from the multiprocessing framework setup in Task 1 - each camera views the left and right side of the table, ~70% of the full pool table. We then extract the SIFT features from each view and brute-force match them (can further improve match accuracy via fundamental matrix estimation and RANSAC outlier elimination). Once the points are matched, we estimate the homography using `cv2.getHomography`, which is an n-point version of the 4-point `cv2.getPerspectiveTransform` method. Then we warp the right camera to fit the view of the left one to get the stitched result as a new image. 
 
-As an additional step, we apply some refinements to minimize the black padding spaces around the stitched result, and also provide an option to get rid of all the black space, though that may cause information loss so we do not recommend using it.
+As an additional step, we apply some refinements to minimize the black padding spaces around the stitched result, and also provide an option to get rid of all the black space, though that may cause information loss so we do not recommend using it when running YOLO. The stitcher class saves the results to the "stitcher_results" folder, so you can look at the visualizations there.
 
 We can now generate a top view of the stithced result showing the full pool table. The process remains as described in Task 3. Finally, we apply YOLO to the stitched top view to detect all the pool balls.
 
+<p align="center">
+    <img src=https://user-images.githubusercontent.com/94681976/229375341-a0eec447-30a9-4077-b597-b00a94d155c1.png title="Example Training Image" width=50% />
+</p>
+
+NOTE: Stitching can be time-intensive, especially if using Brute Force Matching with SIFT features. We make the assumption that our cameras remain stationary, which relaxes the homography estimation operation (which requires this feature correspondence) to run just once instead of every single frame. Then, we can use the estimated homography to directly warp all successive frames as long as the cameras do not move. Without YOLO, stitching on every frame results in 10 FPS on average, whereas the assumption improves it to 333 tested average FPS, which is significantly better and removes the bottleneck from this step. 
+
 ### Task 5
 
+We used OpenCV's background subtraction method based on a Mixture-of-Gaussians (MoG) model, as implemented in `cv2.createBackgroundSubtractorMOG2` with trial-and-error param values. See the video at the top for the heatmap (yellow depicts motion, green depicts background/stationary regions). Note that we perform the heatmap update BEFORE running YOLO on the frame to prevent the drawn bboxes from triggering the model. There is still a lot of room for improvement here though.
+
+### Task 6
+
+Not implemented. Though we did not perform the optional task owing to time constraints, a naive and simple approach would be to draw a small box around the pockets and check when a pool ball's bounding box center passes that boundary. Since we are in the top view, this is a fairly accurate measure of when a ball is pocketed. In this context, a trip wire could determine when a ball is pocketed and keep track of the score.
 
 ***
 
 ### ***PROJECT WAS COMPLETED APART FROM THE OPTIONAL TRIPWIRE FEATURE***
-
-Though we did not perform the optional task owing to time constraints, a naive and simple approach would be to draw a small box around the pockets and check when a pool ball's bounding box center passes that boundary. Since we are in the top view, this is a fairly accurate measure of when a ball is pocketed. In this context, a trip wire could determine when a ball is pocketed and keep track of the score.
 
 #### Further Improvements and Addons
 
