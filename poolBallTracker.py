@@ -21,9 +21,11 @@ import multiprocessing                  # for parallel processing
 from imgStitcher import Stitcher
 import queue                        # used in maintaining heatmap history
 
-# DEFUNCT
+# Unused now...
 #import threading    # for minimal lag on IP cameras with threads --- couldn't manage to implement for YoloV4, scrapped since using Tiny
-#from imutils.video import VideoStream   # later testing... supposed to be better than OpenCV's VideoCapture()
+#from imutils.video import VideoStream   # supposed to be better than OpenCV's VideoCapture()
+
+# np.random.seed(100)
 
 # Some video writing settings should we want to record stuff.
 fourcc = cv.VideoWriter_fourcc(*'XVID')
@@ -48,18 +50,6 @@ weightsPath = os.path.join(darknetDir, 'pbt/yolo-obj.weights').replace(os.sep, '
 # particular network will call ANY CIRCULAR/SPHERICAL SHAPE A POOL BALL.
 targetSize = (416, 416)
 
-# Initialize labels, colors, confidence and non-maxima suppression thresholds...
-# To read multiple class labels conveniently...
-# Note: Haven't tested with '\r\n'; works with ',' but only for multi-class case.
-
-#np.random.seed(100)
-#labels = np.loadtxt(namesPath, dtype = str, delimiter = '\r\n')   
-#colors = np.random.randint(0, 255, size = (len(labels), 3), dtype = np.uint8)
-
-# For single class problems...
-labels = ['pool ball']          # only one label
-colors = (150, 150, 255)        # only one color
-
 # Detection and NMS thresholds
 ConfThresh = 0.5 
 NMSThresh = 0.3
@@ -67,10 +57,24 @@ NMSThresh = 0.3
 # YOLO class to keep things concise. You may event put this in another script and import it from
 # there, just like the stitcher class to keep this script shorter.
 class YOLO(object):
-    def __init__(self):
-        global namesPath; global cfgPath; global weightsPath
+    def __init__(self, weightsPath, cfgPath, namesPath, ConfThresh=0.5, NMSThresh=0.3):
+        self.ConfThresh = ConfThresh
+        self.NMSThresh = NMSThresh
 
-        # Instantiate yolo network.
+        # Initialize labels, colors, confidence and non-maxima suppression thresholds...
+        # To read multiple class labels conveniently...
+        # Note: Haven't tested with '\r\n'; works with ',' but only for multi-class case.
+        # self.labels = np.loadtxt(namesPath, dtype = str, delimiter = '\r\n').tolist()
+
+        # For single class problems...
+        self.labels = ['pool ball']
+
+        if len(self.labels) == 1:
+            self.colors = [150, 150, 255]
+        else:
+            self.colors = np.random.randint(0, 255, size = (len(self.labels), 3), dtype = np.uint8).tolist()
+
+        # Instantiate YOLO network.
         print('[INFO-YOLO] Loading YOLO from', darknetDir, end = '...\n')
         self.yolo = cv.dnn.readNetFromDarknet(cfgPath, weightsPath)
 
@@ -83,8 +87,7 @@ class YOLO(object):
         self.layer_names = [self.layer_names[i - 1] for i in self.yolo.getUnconnectedOutLayers()]
 
     # Member function to detect objects in a frame.
-    def detect(self, frame, fh, fw):
-        global targetSize; global labels; global colors; global ConfThresh; global NMSThresh
+    def detect(self, frame, fh, fw, targetSize):
 
         # Create a blob and perform a forward pass through the network.
         blob = cv.dnn.blobFromImage(frame, 1/255.0, (targetSize[1], targetSize[0]), swapRB = True, crop = False)
@@ -103,7 +106,7 @@ class YOLO(object):
                 ID = np.argmax(score)   # this is a consensus to assign label for multi-label problems; we leave it for expandability
                 conf = score[ID]        # extract confidence for highest probable label; once again not necessary for single class problems
                 
-                if conf > ConfThresh:
+                if conf > self.ConfThresh:
                     bbox = det[0:4] * np.array([fw, fh, fw, fh])    # bbox has form (center_x, center_y, total_width, total_height)
                     bbox = bbox.astype('int')       
                     
@@ -114,15 +117,19 @@ class YOLO(object):
                     IDs.append(ID)                       
 
         # Perform non-maxima suppression (NMS). Note NMS also requires bbox 'x' and 'y' to be top left corner of rectangle.
-        bbox_idxs_to_keep = cv.dnn.NMSBoxes(bboxes, confs, ConfThresh, NMSThresh)
+        bbox_idxs_to_keep = cv.dnn.NMSBoxes(bboxes, confs, self.ConfThresh, self.NMSThresh)
         if len(bbox_idxs_to_keep) > 0:
             for i in bbox_idxs_to_keep.flatten():
                 # Draw bounding boxes post-NMS on the input frame.
                 (bx, by, bw, bh) = bboxes[i]
-                # [int(c) for c in colors[IDs[i]]]
-                pickedColor = colors  
+
+                if len(self.labels==1):
+                    pickedColor = self.colors
+                else:
+                    pickedColor = [int(c) for c in self.colors[IDs[i]]]  # cv2.rectangle() requires int, not numpy.uint8
+  
                 cv.rectangle(frame, (bx, by), (bx + bw, by + bh), pickedColor, 1)
-                text = '{}: {:.2f}'.format(labels[IDs[i]], confs[i])
+                text = '{}: {:.2f}'.format(self.labels[IDs[i]], confs[i])
                 cv.putText(frame, text, (bx, by - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, pickedColor, 1)  
 
 
@@ -201,9 +208,13 @@ def videoPB(path):
 
     # Create the named window to display video, and instantiate YOLO and FPS counter.
     cv.namedWindow(name)
-    detector = YOLO()
+    detector = YOLO(weightsPath=weightsPath, 
+                    cfgPath=cfgPath, 
+                    namesPath=namesPath, 
+                    ConfThresh=ConfThresh, 
+                    NMSThresh=NMSThresh)
+    
     fps = FPS().start()
-
     # Begin reading the video frames.
     while (vid.isOpened()):
         _, frame = vid.read()
@@ -213,7 +224,7 @@ def videoPB(path):
             break
 
         frame = cv.resize(frame, (int(scaleW), int(scaleH)))
-        detector.detect(frame, scaleH, scaleW)
+        detector.detect(frame, scaleH, scaleW, targetSize=targetSize)
         cv.imshow(name, frame)
 
         key = cv.waitKey(natFPS)    # to ensure proper FPS on video playback, otherwise it speeds up or slows down
@@ -296,7 +307,12 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
     # INITIALIZATIONS
     # ===============
     stitcher = Stitcher()                               # custom stitcher object
-    detector = YOLO()                                   # YOLO object detector object
+    detector = YOLO(weightsPath=weightsPath, 
+                    cfgPath=cfgPath, 
+                    namesPath=namesPath, 
+                    ConfThresh=ConfThresh, 
+                    NMSThresh=NMSThresh)
+    
     homography_stitch = None                            # store homography for stitch warp
     homography_top = None                               # store homography for bird's eye warp
     stitch_winName = 'stitch_view'                      # to display stitched results (if needed)
@@ -434,7 +450,7 @@ def stitchFeeds(event_ready, event_stitched, id_camleft, queue_camleft, id_camri
         # You may modify the class function to return these bboxes for implementing KCF or other trackers if FPS are
         # a problem, or even verify if a pool ball was pocketed (draw a rectangle around pool table pockets, if any ball's
         # center enters this it counts as a pocket). Might implement in the future.
-        detector.detect(frame_top, top_height, top_width)
+        detector.detect(frame_top, top_height, top_width, targetSize=targetSize)
         
         # Write to file if recording and not paused.
         if rec and rec_hmp and not isPaused:                
